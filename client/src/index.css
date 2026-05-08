@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -17,8 +17,23 @@
   --text-primary: #F0EDE8;
   --text-secondary: #9A9690;
   --text-muted: #5A5855;
-  --radius: 12px;
-  --transition: all 0.2s ease;
+  --radius: 16px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+  --gold: #C9A84C;
+  --gold-light: #B8963A;
+  --gold-dim: #D4B96A;
+  --bg-deep: #F8F9FA;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #F1F3F5;
+  --bg-subtle: #E9ECEF;
+  --border: rgba(0,0,0,0.1);
+  --border-gold: rgba(201,168,76,0.3);
+  --text-primary: #1A1A1A;
+  --text-secondary: #4A4A4A;
+  --text-muted: #868E96;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,16 +41,41 @@
 body {
   background: var(--bg-deep);
   color: var(--text-primary);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-h1, h2, h3 {
-  font-family: 'Playfair Display', serif;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@keyframes drive {
+  0% { transform: translateX(-100%) rotateY(0deg); }
+  45% { transform: translateX(120vw) rotateY(0deg); }
+  50% { transform: translateX(120vw) rotateY(180deg); }
+  95% { transform: translateX(-100%) rotateY(180deg); }
+  100% { transform: translateX(-100%) rotateY(0deg); }
+}
+
+.animate-drive {
+  animation: drive 15s linear infinite;
 }
 
 /* Scrollbar */

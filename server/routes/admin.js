@@ -140,8 +140,49 @@ router.post('/cars', async (req, res) => {
            @transmission_type, @fuel_type, @price_per_day,
            @seating_capacity, @description, @image_url)
       `);
-
     res.status(201).json({ message: 'Car added successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/admin/cars/:id (Update full car details)
+router.put('/cars/:id', async (req, res) => {
+  const {
+    brand, model, year, category_id,
+    transmission_type, fuel_type,
+    price_per_day, seating_capacity,
+    description, image_url
+  } = req.body;
+  try {
+    const pool = await poolPromise;
+    await pool.request()
+      .input('car_id',            sql.Int,     req.params.id)
+      .input('category_id',       sql.Int,     category_id)
+      .input('brand',             sql.VarChar, brand)
+      .input('model',             sql.VarChar, model)
+      .input('year',              sql.Int,     year)
+      .input('transmission_type', sql.VarChar, transmission_type)
+      .input('fuel_type',         sql.VarChar, fuel_type)
+      .input('price_per_day',     sql.Decimal, price_per_day)
+      .input('seating_capacity',  sql.Int,     seating_capacity)
+      .input('description',       sql.VarChar, description || null)
+      .input('image_url',         sql.VarChar, image_url   || null)
+      .query(`
+        UPDATE Cars
+        SET category_id = @category_id,
+            brand = @brand,
+            model = @model,
+            year = @year,
+            transmission_type = @transmission_type,
+            fuel_type = @fuel_type,
+            price_per_day = @price_per_day,
+            seating_capacity = @seating_capacity,
+            description = @description,
+            image_url = @image_url
+        WHERE car_id = @car_id
+      `);
+    res.json({ message: 'Car details updated successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

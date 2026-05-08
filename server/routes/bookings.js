@@ -60,8 +60,6 @@ router.put('/:id/cancel', protect, async (req, res) => {
   }
 });
 
-// ADD to server/routes/bookings.js
-// Place above: module.exports = router;
 
 // PUT /api/bookings/:id/complete
 router.put('/:id/complete', protect, async (req, res) => {

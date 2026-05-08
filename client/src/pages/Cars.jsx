@@ -9,7 +9,9 @@ const CATEGORIES = [
 ];
 
 function CarCard({ car, onBook }) {
-  const statusColors = { Available: 'badge-available', Booked: 'badge-booked', 'Under Maintenance': 'badge-maintenance' };
+  const isAvailable = car.is_available === 1;
+  const statusLabel = isAvailable ? 'Available' : 'Already Booked';
+  const statusClass = isAvailable ? 'badge-available' : 'badge-booked';
 
   return (
     <div className="card" style={{
@@ -31,8 +33,8 @@ function CarCard({ car, onBook }) {
           <span style={{ fontSize: 56 }}>🚗</span>
         )}
         <div style={{ position: 'absolute', top: 12, right: 12 }}>
-          <span className={`badge ${statusColors[car.status_name] || 'badge-available'}`}>
-            {car.status_name}
+          <span className={`badge ${statusClass}`}>
+            {statusLabel}
           </span>
         </div>
       </div>
@@ -80,12 +82,11 @@ function CarCard({ car, onBook }) {
         )}
 
         <button
-          className="btn-gold"
-          style={{ width: '100%', padding: '11px', fontSize: 13 }}
-          onClick={() => onBook(car)}
-          disabled={car.status_name !== 'Available'}
+          className={isAvailable ? "btn-gold" : "btn-ghost"}
+          style={{ width: '100%', padding: '11px', fontSize: 13, cursor: isAvailable ? 'pointer' : 'not-allowed', opacity: isAvailable ? 1 : 0.7 }}
+          onClick={() => isAvailable && onBook(car)}
         >
-          {car.status_name === 'Available' ? 'Book Now' : 'Unavailable'}
+          {isAvailable ? 'Book Now' : 'Already Booked · See Dates'}
         </button>
       </div>
     </div>
@@ -99,19 +100,27 @@ export default function Cars() {
 
   const [filters, setFilters] = useState({
     start: today, end: tomorrow,
-    category: '', transmission: '', fuel: '', maxPrice: '', minSeats: '',
+    category: '', transmission: '', fuel: '', 
+    minPrice: '', maxPrice: '', minSeats: '',
   });
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    search();
+  }, []); // Initial load shows all available/booked cars
 
   const setF = (k, v) => setFilters(f => ({ ...f, [k]: v }));
 
   const search = async () => {
     setLoading(true); setSearched(true);
     try {
-      const params = Object.fromEntries(Object.entries(filters).filter(([,v]) => v !== ''));
-      const { data } = await api.get('/cars/search', { params });
+      const cleanParams = {};
+      Object.keys(filters).forEach(k => {
+        if (filters[k]) cleanParams[k] = filters[k];
+      });
+      const { data } = await api.get('/cars/search', { params: cleanParams });
       setCars(data);
     } catch { setCars([]); }
     finally { setLoading(false); }
@@ -163,8 +172,24 @@ export default function Cars() {
             </div>
 
             <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Max price/day</label>
-              <input className="input-base" type="number" placeholder="Any" value={filters.maxPrice} onChange={e => setF('maxPrice', e.target.value)} style={{ fontSize: 13 }} />
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Fuel Type</label>
+              <select className="input-base" value={filters.fuel} onChange={e => setF('fuel', e.target.value)} style={{ fontSize: 13 }}>
+                <option value="">Any</option>
+                <option>Petrol</option>
+                <option>Diesel</option>
+                <option>Electric</option>
+                <option>Hybrid</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Min Price</label>
+              <input className="input-base" type="number" placeholder="Min" value={filters.minPrice} onChange={e => setF('minPrice', e.target.value)} style={{ fontSize: 13, width: 80 }} />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Max Price</label>
+              <input className="input-base" type="number" placeholder="Max" value={filters.maxPrice} onChange={e => setF('maxPrice', e.target.value)} style={{ fontSize: 13, width: 80 }} />
             </div>
 
             <button onClick={search} className="btn-gold" style={{ padding: '12px 24px', fontSize: 14, height: 46 }}>
@@ -215,7 +240,11 @@ export default function Cars() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}
             className="fade-up">
             {cars.map(car => (
-              <CarCard key={car.car_id} car={car} onBook={() => navigate(`/book/${car.car_id}`, { state: { car, filters } })} />
+              <CarCard 
+                key={car.car_id} 
+                car={car} 
+                onBook={car.is_available ? () => navigate(`/book/${car.car_id}`, { state: { car, filters } }) : null} 
+              />
             ))}
           </div>
         )}

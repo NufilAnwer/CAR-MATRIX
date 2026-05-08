@@ -8,6 +8,25 @@ const { sql, poolPromise } = require('../config/db');
 router.post('/register', async (req, res) => {
   const { name, email, phone, cnic, password } = req.body;
   try {
+    // 1. Validation
+    if (!name || !email || !phone || !cnic || !password)
+      return res.status(400).json({ message: 'All fields are required' });
+
+    // Email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email))
+      return res.status(400).json({ message: 'Invalid email format' });
+
+    // Phone format (0 + 10 digits)
+    const phoneRegex = /^0\d{10}$/;
+    if (!phoneRegex.test(phone))
+      return res.status(400).json({ message: 'Phone must be 11 digits starting with 0' });
+
+    // Strong Password (8+ chars, 1 uppercase, 1 number)
+    const passRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passRegex.test(password))
+      return res.status(400).json({ message: 'Password must be 8+ chars with 1 uppercase & 1 number' });
+
     const pool = await poolPromise;
 
     // Check duplicates
@@ -22,11 +41,11 @@ router.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     const result = await pool.request()
-      .input('name',  sql.VarChar, name)
-      .input('email', sql.VarChar, email)
-      .input('phone', sql.VarChar, phone)
-      .input('cnic',  sql.VarChar, cnic)
-      .input('hash',  sql.VarChar, hash)
+      .input('name',    sql.VarChar, name)
+      .input('email',   sql.VarChar, email)
+      .input('phone',   sql.VarChar, phone)
+      .input('cnic',    sql.VarChar, cnic)
+      .input('hash',    sql.VarChar, hash)
       .query(`INSERT INTO Users (name,email,phone,cnic,password_hash,role)
                OUTPUT INSERTED.user_id
                VALUES (@name,@email,@phone,@cnic,@hash,'Customer')`);
@@ -70,8 +89,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ADD THIS to server/routes/auth.js
-// Place it just above: module.exports = router;
 
 router.post('/driver-apply', async (req, res) => {
   const {

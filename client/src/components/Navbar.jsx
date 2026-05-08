@@ -10,30 +10,31 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav style={{
-      background: 'rgba(14,14,16,0.85)',
-      backdropFilter: 'blur(20px)',
+    <nav className="glass" style={{
       borderBottom: '1px solid var(--border)',
       position: 'sticky', top: 0, zIndex: 100,
+      borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none'
     }}>
       <div style={{
         maxWidth: 1200, margin: '0 auto',
         padding: '0 24px',
-        height: 64,
+        height: 72,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         {/* Logo */}
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 32, height: 32, borderRadius: 8,
+            width: 36, height: 36, borderRadius: 10,
             background: 'linear-gradient(135deg, var(--gold), var(--gold-dim))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, fontWeight: 700, color: '#0E0E10',
+            fontSize: 16, fontWeight: 800, color: '#0E0E10',
+            boxShadow: '0 4px 12px rgba(201,168,76,0.3)'
           }}>C</div>
           <span style={{
-            fontFamily: 'Playfair Display, serif',
-            fontSize: 20, fontWeight: 600,
+            fontFamily: 'Outfit, sans-serif',
+            fontSize: 22, fontWeight: 700,
             color: 'var(--text-primary)',
+            letterSpacing: '-0.02em'
           }}>CarMatrix</span>
         </Link>
 
@@ -43,6 +44,7 @@ export default function Navbar() {
             { to: '/', label: 'Home' },
             { to: '/cars', label: 'Browse Cars' },
             ...(user ? [{ to: '/bookings', label: 'My Bookings' }] : []),
+            ...(user ? [{ to: '/profile', label: 'My Profile' }] : []),
             ...(user?.role === 'Admin' ? [{ to: '/admin', label: 'Admin' }] : []),
           ].map(link => (
             <Link key={link.to} to={link.to} style={{

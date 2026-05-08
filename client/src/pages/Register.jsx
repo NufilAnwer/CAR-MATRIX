@@ -5,27 +5,35 @@ import api from '../api/axios';
 export default function Register() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', phone: '', cnic: '', password: '', confirm: '' });
+  const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const validatePassword = (pass) => {
+    return /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(pass);
+  };
+
   const handleNext = (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.phone) return setError('Please fill all fields');
+    if (!form.email.includes('@') || !form.email.includes('.')) return setError('Invalid email format');
+    if (!/^0\d{10}$/.test(form.phone)) return setError('Phone must be 11 digits starting with 0');
     setError(''); setStep(2);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.confirm) return setError('Passwords do not match');
-    if (form.password.length < 6) return setError('Password must be at least 6 characters');
+    if (!validatePassword(form.password)) return setError('Password must be 8+ chars with 1 uppercase & 1 number');
     setError(''); setLoading(true);
     try {
       await api.post('/auth/register', {
         name: form.name, email: form.email,
-        phone: form.phone, cnic: form.cnic, password: form.password,
+        phone: form.phone, cnic: form.cnic, 
+        password: form.password
       });
       navigate('/login', { state: { registered: true } });
     } catch (err) {
@@ -109,9 +117,34 @@ export default function Register() {
           <h1 style={{ fontSize: 28, marginBottom: 6 }}>
             {step === 1 ? 'Create account' : 'Set your password'}
           </h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 28, fontSize: 14 }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 20, fontSize: 14 }}>
             {step === 1 ? 'Step 1 of 2 — Tell us about yourself' : 'Step 2 of 2 — Secure your account'}
           </p>
+
+          {/* Role Toggle Tabs (redirects to driver page if clicked) */}
+          {step === 1 && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 28, background: 'var(--bg-elevated)', padding: 6, borderRadius: 12 }}>
+              <button
+                type="button"
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                  background: 'var(--bg-card)', color: 'var(--gold)', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                }}
+              >
+                Rent a Car
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/driver/register')}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                  background: 'transparent', color: 'var(--text-secondary)', border: 'none'
+                }}
+              >
+                Drive for Us
+              </button>
+            </div>
+          )}
 
           {error && (
             <div style={{ background: 'rgba(255,59,48,0.1)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 8, padding: '12px 16px', marginBottom: 20, color: '#FF3B30', fontSize: 13 }}>
@@ -128,7 +161,9 @@ export default function Register() {
               ].map(f => (
                 <div key={f.key}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>{f.label}</label>
-                  <input className="input-base" type={f.type} placeholder={f.placeholder} value={form[f.key]} onChange={e => set(f.key, e.target.value)} required />
+                  <input className="input-base" type={f.type} placeholder={f.placeholder} value={form[f.key]} onChange={e => set(f.key, e.target.value)} required 
+                    pattern={f.key === 'phone' ? "0[0-9]{10}" : undefined}
+                  />
                 </div>
               ))}
               <button type="submit" className="btn-gold" style={{ width: '100%', padding: 14, marginTop: 8, fontSize: 15 }}>
@@ -141,13 +176,16 @@ export default function Register() {
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>CNIC number</label>
                 <input className="input-base" type="text" placeholder="35202-1234567-1" value={form.cnic} onChange={e => set('cnic', e.target.value)} required />
               </div>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>Password</label>
-                <input className="input-base" type="password" placeholder="Min. 6 characters" value={form.password} onChange={e => set('password', e.target.value)} required />
+                <input className="input-base" type={showPass ? "text" : "password"} placeholder="Min. 8 chars, 1 Upper, 1 Num" value={form.password} onChange={e => set('password', e.target.value)} required />
+                <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 12, top: 34, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>
+                  {showPass ? '👁️' : '👁️‍🗨️'}
+                </button>
               </div>
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>Confirm password</label>
-                <input className="input-base" type="password" placeholder="••••••••" value={form.confirm} onChange={e => set('confirm', e.target.value)} required />
+                <input className="input-base" type={showPass ? "text" : "password"} placeholder="••••••••" value={form.confirm} onChange={e => set('confirm', e.target.value)} required />
               </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                 <button type="button" className="btn-ghost" style={{ flex: 1, padding: 14 }} onClick={() => { setStep(1); setError(''); }}>← Back</button>

@@ -5,7 +5,7 @@ const { protect } = require('../middleware/authMiddleware');
 
 // GET /api/cars/search?start=&end=&category=&transmission=&fuel=&maxPrice=&minSeats=
 router.get('/search', async (req, res) => {
-  const { start, end, category, transmission, fuel, maxPrice, minSeats } = req.query;
+  const { start, end, category, transmission, fuel, minPrice, maxPrice, minSeats } = req.query;
   try {
     const pool = await poolPromise;
     const result = await pool.request()
@@ -14,6 +14,7 @@ router.get('/search', async (req, res) => {
       .input('category_id', sql.Int,  category    || null)
       .input('transmission',sql.VarChar, transmission || null)
       .input('fuel_type',   sql.VarChar, fuel        || null)
+      .input('min_price',   sql.Decimal, minPrice    || null)
       .input('max_price',   sql.Decimal, maxPrice    || null)
       .input('min_seats',   sql.Int,     minSeats    || null)
       .execute('sp_SearchAvailableCars');

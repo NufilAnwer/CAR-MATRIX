@@ -9,6 +9,8 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [roleTab, setRoleTab] = useState('Customer');
+  const [showPass, setShowPass] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,10 +49,30 @@ export default function Login() {
             </Link>
           </div>
 
-          <h1 style={{ fontSize: 32, marginBottom: 8 }}>Welcome back</h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 36, fontSize: 15 }}>
-            Sign in to your account to continue
+          <h1 style={{ fontSize: 32, marginBottom: 8 }}>
+            {roleTab === 'Customer' ? 'Welcome back' : 'Welcome, Partner'}
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 24, fontSize: 15 }}>
+            {roleTab === 'Customer' ? 'Sign in to your account to continue' : 'Sign in to manage your trips and earnings'}
           </p>
+
+          {/* Role Toggle Tabs */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 32, background: 'var(--bg-elevated)', padding: 6, borderRadius: 12 }}>
+            {['Customer', 'Driver'].map(r => (
+              <button
+                key={r} type="button"
+                onClick={() => { setRoleTab(r); setError(''); }}
+                style={{
+                  flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                  background: roleTab === r ? 'var(--bg-card)' : 'transparent',
+                  color: roleTab === r ? 'var(--gold)' : 'var(--text-secondary)',
+                  border: 'none', boxShadow: roleTab === r ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
+                }}
+              >
+                {r === 'Customer' ? 'Rent a Car' : 'Drive for Us'}
+              </button>
+            ))}
+          </div>
 
           {error && (
             <div style={{
@@ -74,19 +96,22 @@ export default function Login() {
               />
             </div>
 
-            <div>
+            <div style={{ position: 'relative' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                  Password
+                   Password
                 </label>
               </div>
               <input
                 className="input-base"
-                type="password" placeholder="••••••••"
+                type={showPass ? "text" : "password"} placeholder="••••••••"
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
                 required
               />
+              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 12, top: 34, background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>
+                {showPass ? '👁️' : '👁️‍🗨️'}
+              </button>
             </div>
 
             <button
@@ -100,7 +125,7 @@ export default function Login() {
 
           <p style={{ textAlign: 'center', marginTop: 28, fontSize: 14, color: 'var(--text-secondary)' }}>
             Don't have an account?{' '}
-            <Link to="/register" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>
+            <Link to={roleTab === 'Customer' ? "/register" : "/driver/register"} style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>
               Create one
             </Link>
           </p>
@@ -140,22 +165,42 @@ export default function Login() {
         }} />
 
         <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: 64, marginBottom: 24 }}>🚗</div>
+          <div style={{ fontSize: 64, marginBottom: 24 }}>
+            {roleTab === 'Customer' ? '🚗' : '💼'}
+          </div>
           <h2 style={{ fontSize: 26, marginBottom: 12, lineHeight: 1.3 }}>
-            Drive the car<br/>of your dreams
+            {roleTab === 'Customer' ? (
+              <>Drive the car<br/>of your dreams</>
+            ) : (
+              <>Drive & Earn<br/>with CarMatrix</>
+            )}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7, maxWidth: 280 }}>
-            Access Pakistan's finest fleet of vehicles. From daily commutes to luxury getaways — we have you covered.
+            {roleTab === 'Customer' ? 
+              "Access Pakistan's finest fleet of vehicles. From daily commutes to luxury getaways — we have you covered." :
+              "Join our fleet of professional drivers. Earn on your own schedule with reliable bookings and transparent payments."
+            }
           </p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 40 }}>
-            {[['50+', 'Cars'], ['1000+', 'Trips'], ['4.9★', 'Rating']].map(([val, lbl]) => (
-              <div key={lbl} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--gold)', fontFamily: 'Playfair Display, serif' }}>{val}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{lbl}</div>
-              </div>
-            ))}
-          </div>
+          {roleTab === 'Customer' ? (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 40 }}>
+              {[['50+', 'Cars'], ['1000+', 'Trips'], ['4.9★', 'Rating']].map(([val, lbl]) => (
+                <div key={lbl} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--gold)', fontFamily: 'Playfair Display, serif' }}>{val}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{lbl}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 40 }}>
+              {[['Flexible', 'Hours'], ['Weekly', 'Payouts'], ['Premium', 'Clients']].map(([val, lbl]) => (
+                <div key={lbl} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--gold)', fontFamily: 'Playfair Display, serif' }}>{val}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{lbl}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

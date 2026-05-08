@@ -152,8 +152,32 @@ export default function DriverRegister() {
 
           {/* Step 0 — Account info */}
           {step === 0 && (
-            <form onSubmit={nextStep} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-              <h2 style={{ fontSize: 22, marginBottom: 2 }}>Personal details</h2>
+            <div className="fade-up">
+              {/* Role Toggle Tabs (redirects to customer page if clicked) */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 28, background: 'var(--bg-elevated)', padding: 6, borderRadius: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  style={{
+                    flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                    background: 'transparent', color: 'var(--text-secondary)', border: 'none'
+                  }}
+                >
+                  Rent a Car
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                    background: 'var(--bg-card)', color: 'var(--gold)', border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                  }}
+                >
+                  Drive for Us
+                </button>
+              </div>
+
+              <form onSubmit={nextStep} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+                <h2 style={{ fontSize: 22, marginBottom: 2 }}>Personal details</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 8 }}>Step 1 of 3 — Your account credentials</p>
 
               {[
@@ -177,8 +201,9 @@ export default function DriverRegister() {
                   <input className="input-base" type="password" placeholder="••••••" style={{ fontSize: 13 }} value={form.confirm} onChange={e => set('confirm', e.target.value)} required />
                 </div>
               </div>
-              <button type="submit" className="btn-gold" style={{ padding: 14, fontSize: 14, marginTop: 4 }}>Continue →</button>
-            </form>
+                <button type="submit" className="btn-gold" style={{ padding: 14, fontSize: 14, marginTop: 4 }}>Continue →</button>
+              </form>
+            </div>
           )}
 
           {/* Step 1 — Driver info */}
