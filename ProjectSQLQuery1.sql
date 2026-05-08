@@ -593,7 +593,7 @@ BEGIN
     GROUP BY
         c.car_id, c.brand, c.model, c.year, cc.category_name,
         c.transmission_type, c.fuel_type, c.price_per_day,
-        c.seating_capacity, c.image_url
+        c.seating_capacity, c.image_url, cs.status_name
     ORDER BY avg_rating DESC, c.price_per_day ASC;
 END;
 GO

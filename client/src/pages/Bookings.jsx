@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { jsPDF } from 'jspdf';
 
 const STATUS_STYLES = {
   Confirmed:  { bg: 'rgba(52,199,89,0.1)',  color: '#34C759', label: 'Confirmed' },
@@ -48,6 +49,70 @@ export default function Bookings() {
     { id: 'completed', label: 'Completed', count: bookings.filter(b => b.booking_status === 'Completed').length },
     { id: 'cancelled', label: 'Cancelled', count: bookings.filter(b => b.booking_status === 'Cancelled').length },
   ];
+
+  const generateReceipt = (b) => {
+    const doc = new jsPDF();
+    const days = Math.ceil((new Date(b.end_date) - new Date(b.start_date)) / 86400000);
+    
+    // Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(201, 168, 76); // Gold
+    doc.text('CarMatrix Receipt', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Booking #${b.booking_id}`, 105, 28, { align: 'center' });
+
+    // Status Badge
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Status: ${b.booking_status}`, 20, 45);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 140, 45);
+
+    // Divider
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 50, 190, 50);
+
+    // Customer & Car Info
+    doc.setFont('helvetica', 'bold');
+    doc.text('Customer Details', 20, 65);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Name: ${_user?.name || b.customer_name}`, 20, 75);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('Car Details', 120, 65);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Car: ${b.car_name || 'Car'}`, 120, 75);
+    doc.text(`Dates: ${b.start_date} to ${b.end_date}`, 120, 83);
+    doc.text(`Duration: ${days} day(s)`, 120, 91);
+    if (b.driver_name) doc.text(`Driver: ${b.driver_name}`, 120, 99);
+
+    // Divider
+    doc.line(20, 110, 190, 110);
+
+    // Payment Summary
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Summary', 20, 125);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Payment Method: ${b.payment_method || 'Pending'}`, 20, 135);
+    doc.text(`Payment Status: ${b.payment_status || 'Pending'}`, 20, 143);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Total Amount:', 120, 135);
+    doc.setTextColor(201, 168, 76);
+    doc.text(`Rs. ${Number(b.total_amount).toLocaleString()}`, 160, 135);
+
+    // Footer
+    doc.setTextColor(150, 150, 150);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text('Thank you for choosing CarMatrix!', 105, 280, { align: 'center' });
+
+    doc.save(`Receipt_CarMatrix_${b.booking_id}.pdf`);
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-deep)' }}>
@@ -147,6 +212,11 @@ export default function Bookings() {
                       {b.booking_status === 'Completed' && (
                         <button className="btn-ghost" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => navigate(`/review/${b.car_id}`)}>
                           Leave Review
+                        </button>
+                      )}
+                      {(b.booking_status === 'Completed' || b.booking_status === 'Confirmed') && (
+                        <button className="btn-ghost" style={{ padding: '6px 14px', fontSize: 12 }} onClick={() => generateReceipt(b)}>
+                          Download Receipt
                         </button>
                       )}
                       {canCancel && (

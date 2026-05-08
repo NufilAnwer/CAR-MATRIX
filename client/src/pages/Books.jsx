@@ -194,7 +194,13 @@ export default function Book() {
             <div className="card" style={{ padding: 24 }}>
               {/* Car summary */}
               <div style={{ display: 'flex', gap: 14, marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
-                <div style={{ width: 72, height: 56, borderRadius: 8, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>🚗</div>
+                <div style={{ width: 72, height: 56, borderRadius: 8, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, overflow: 'hidden' }}>
+                  {car.image_url ? (
+                    <img src={car.image_url} alt={car.model} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    '🚗'
+                  )}
+                </div>
                 <div>
                   <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 15, fontWeight: 600 }}>{car.brand} {car.model}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{car.year} · {car.category_name}</div>

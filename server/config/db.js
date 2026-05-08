@@ -1,16 +1,13 @@
-const sql = require('mssql');
+const sql = require('mssql/msnodesqlv8');
 require('dotenv').config();
 
+const dbServer = process.env.DB_SERVER || 'localhost';
+const dbName = process.env.DB_NAME || 'carm';
+// Use ODBC Driver 17 for SQL Server. Adjust if using a different driver version.
+const connectionString = `Driver={ODBC Driver 17 for SQL Server};Server=${dbServer};Database=${dbName};Trusted_Connection=yes;`;
+
 const config = {
-  server: process.env.DB_SERVER,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT),
-  options: {
-    encrypt: false,
-    trustServerCertificate: true,
-  },
+  connectionString: connectionString,
   pool: {
     max: 10,
     min: 0,
