@@ -81,10 +81,11 @@ router.get('/cars', async (req, res) => {
   try {
     const pool = await poolPromise;
     const r = await pool.request().query(`
-      SELECT c.*, cc.category_name, cs.status_name
+      SELECT c.*, cc.category_name, cs.status_name, d.name AS driver_name
       FROM Cars c
       JOIN Car_Categories cc ON c.category_id = cc.category_id
       JOIN Car_Status cs     ON c.status_id   = cs.status_id
+      LEFT JOIN Drivers d    ON c.driver_id   = d.driver_id
       ORDER BY c.car_id DESC
     `);
     res.json(r.recordset);
@@ -99,7 +100,7 @@ router.post('/cars', async (req, res) => {
     brand, model, year, category_id,
     transmission_type, fuel_type,
     price_per_day, seating_capacity,
-    description, image_url
+    description, image_url, driver_id
   } = req.body;
   try {
     const pool = await poolPromise;
@@ -130,15 +131,16 @@ router.post('/cars', async (req, res) => {
       .input('seating_capacity',  sql.Int,     seating_capacity)
       .input('description',       sql.VarChar, description || null)
       .input('image_url',         sql.VarChar, image_url   || null)
+      .input('driver_id',         sql.Int,     driver_id   || null)
       .query(`
         INSERT INTO Cars
           (category_id, status_id, admin_id, brand, model, year,
            transmission_type, fuel_type, price_per_day,
-           seating_capacity, description, image_url)
+           seating_capacity, description, image_url, driver_id)
         VALUES
           (@category_id, @status_id, @admin_id, @brand, @model, @year,
            @transmission_type, @fuel_type, @price_per_day,
-           @seating_capacity, @description, @image_url)
+           @seating_capacity, @description, @image_url, @driver_id)
       `);
     res.status(201).json({ message: 'Car added successfully' });
   } catch (err) {
@@ -152,7 +154,7 @@ router.put('/cars/:id', async (req, res) => {
     brand, model, year, category_id,
     transmission_type, fuel_type,
     price_per_day, seating_capacity,
-    description, image_url
+    description, image_url, driver_id
   } = req.body;
   try {
     const pool = await poolPromise;
@@ -168,6 +170,7 @@ router.put('/cars/:id', async (req, res) => {
       .input('seating_capacity',  sql.Int,     seating_capacity)
       .input('description',       sql.VarChar, description || null)
       .input('image_url',         sql.VarChar, image_url   || null)
+      .input('driver_id',         sql.Int,     driver_id   || null)
       .query(`
         UPDATE Cars
         SET category_id = @category_id,
@@ -179,7 +182,8 @@ router.put('/cars/:id', async (req, res) => {
             price_per_day = @price_per_day,
             seating_capacity = @seating_capacity,
             description = @description,
-            image_url = @image_url
+            image_url = @image_url,
+            driver_id = @driver_id
         WHERE car_id = @car_id
       `);
     res.json({ message: 'Car details updated successfully' });

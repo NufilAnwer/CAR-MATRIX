@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 
-const EMPTY_CAR = { brand: '', model: '', year: new Date().getFullYear(), category_id: 1, transmission_type: 'Automatic', fuel_type: 'Petrol', price_per_day: '', seating_capacity: 5, description: '', image_url: '' };
+const EMPTY_CAR = { brand: '', model: '', year: new Date().getFullYear(), category_id: 1, transmission_type: 'Automatic', fuel_type: 'Petrol', price_per_day: '', seating_capacity: 5, description: '', image_url: '', driver_id: '' };
 const STATUS_OPTIONS = ['Available', 'Under Maintenance', 'Reserved'];
 const STATUS_COLORS  = { Available: '#34C759', Booked: 'var(--gold)', 'Under Maintenance': '#FF9500', Reserved: '#5856D6' };
 
@@ -34,10 +34,12 @@ export default function CarsAdmin() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_CAR);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [drivers, setDrivers] = useState([]);
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -50,19 +52,53 @@ export default function CarsAdmin() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchCars(); }, []);
+  const fetchDrivers = async () => {
+    try {
+      const { data } = await api.get('/admin/drivers');
+      setDrivers(data);
+    } catch { setDrivers([]); }
+  };
 
-  const handleAdd = async (e) => {
+  useEffect(() => { 
+    fetchCars(); 
+    fetchDrivers();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      await api.post('/admin/cars', form);
+      if (editingId) {
+        await api.put(`/admin/cars/${editingId}`, form);
+      } else {
+        await api.post('/admin/cars', form);
+      }
       setShowModal(false);
       setForm(EMPTY_CAR);
+      setEditingId(null);
       fetchCars();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add car');
+      setError(err.response?.data?.message || (editingId ? 'Failed to update car' : 'Failed to add car'));
     } finally { setSaving(false); }
+  };
+
+  const handleEdit = (car) => {
+    setForm({
+      brand: car.brand,
+      model: car.model,
+      year: car.year,
+      category_id: car.category_id,
+      transmission_type: car.transmission_type,
+      fuel_type: car.fuel_type,
+      price_per_day: car.price_per_day,
+      seating_capacity: car.seating_capacity,
+      description: car.description || '',
+      image_url: car.image_url || '',
+      driver_id: car.driver_id || ''
+    });
+    setEditingId(car.car_id);
+    setError('');
+    setShowModal(true);
   };
 
   const handleStatusChange = async (carId, statusName) => {
@@ -97,7 +133,7 @@ export default function CarsAdmin() {
           <h1 style={{ fontSize: 24, marginBottom: 4 }}>Fleet Management</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{cars.length} cars in the system</p>
         </div>
-        <button className="btn-gold" style={{ padding: '10px 22px', fontSize: 13 }} onClick={() => { setShowModal(true); setForm(EMPTY_CAR); setError(''); }}>
+        <button className="btn-gold" style={{ padding: '10px 22px', fontSize: 13 }} onClick={() => { setShowModal(true); setEditingId(null); setForm(EMPTY_CAR); setError(''); }}>
           + Add Car
         </button>
       </div>
@@ -113,7 +149,7 @@ export default function CarsAdmin() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
-                {['Car', 'Category', 'Transmission', 'Fuel', 'Price/day', 'Seats', 'Status', 'Actions'].map(h => (
+                {['Car', 'Category', 'Driver', 'Price/day', 'Status', 'Actions'].map(h => (
                   <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -140,10 +176,17 @@ export default function CarsAdmin() {
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{car.year}</div>
                   </td>
                   <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>{car.category_name}</td>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>{car.transmission_type}</td>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>{car.fuel_type}</td>
+                  <td style={{ padding: '14px 16px', fontSize: 13 }}>
+                    {car.driver_name ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 14 }}>👨‍✈️</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{car.driver_name}</span>
+                      </div>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Self-drive</span>
+                    )}
+                  </td>
                   <td style={{ padding: '14px 16px', fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>Rs. {Number(car.price_per_day).toLocaleString()}</td>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-secondary)' }}>{car.seating_capacity}</td>
                   <td style={{ padding: '14px 16px' }}>
                     <select
                       value={car.status_name}
@@ -159,10 +202,16 @@ export default function CarsAdmin() {
                     </select>
                   </td>
                   <td style={{ padding: '14px 16px' }}>
-                    <button onClick={() => handleDelete(car.car_id)}
-                      style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 6, padding: '5px 12px', fontSize: 12, color: '#FF3B30', cursor: 'pointer', fontWeight: 500 }}>
-                      Remove
-                    </button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => handleEdit(car)}
+                        style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 6, padding: '5px 12px', fontSize: 12, color: 'var(--gold)', cursor: 'pointer', fontWeight: 500 }}>
+                        Edit
+                      </button>
+                      <button onClick={() => handleDelete(car.car_id)}
+                        style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 6, padding: '5px 12px', fontSize: 12, color: '#FF3B30', cursor: 'pointer', fontWeight: 500 }}>
+                        Remove
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -173,9 +222,9 @@ export default function CarsAdmin() {
 
       {/* Add Car Modal */}
       {showModal && (
-        <Modal title="Add new car" onClose={() => setShowModal(false)}>
+        <Modal title={editingId ? "Update car" : "Add new car"} onClose={() => setShowModal(false)}>
           {error && <div style={{ background: 'rgba(255,59,48,0.1)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 16, color: '#FF3B30', fontSize: 13 }}>{error}</div>}
-          <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Field label="Brand">
                 <input className="input-base" style={{ fontSize: 13 }} placeholder="Toyota" value={form.brand} onChange={e => setF('brand', e.target.value)} required />
@@ -207,6 +256,12 @@ export default function CarsAdmin() {
                   <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
                 </select>
               </Field>
+              <Field label="Assigned Driver">
+                <select className="input-base" style={{ fontSize: 13 }} value={form.driver_id} onChange={e => setF('driver_id', e.target.value)}>
+                  <option value="">No Driver (Self-Drive)</option>
+                  {drivers.map(d => <option key={d.driver_id} value={d.driver_id}>{d.name} (Rs. {d.charge_per_day}/day)</option>)}
+                </select>
+              </Field>
             </div>
             <Field label="Image URL (optional)">
               <input className="input-base" style={{ fontSize: 13 }} placeholder="https://..." value={form.image_url} onChange={e => setF('image_url', e.target.value)} />
@@ -216,7 +271,7 @@ export default function CarsAdmin() {
             </Field>
             <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
               <button type="button" className="btn-ghost" style={{ flex: 1 }} onClick={() => setShowModal(false)}>Cancel</button>
-              <button type="submit" className="btn-gold" style={{ flex: 2 }} disabled={saving}>{saving ? 'Adding...' : 'Add to Fleet'}</button>
+              <button type="submit" className="btn-gold" style={{ flex: 2 }} disabled={saving}>{saving ? 'Saving...' : (editingId ? 'Update Car' : 'Add to Fleet')}</button>
             </div>
           </form>
         </Modal>

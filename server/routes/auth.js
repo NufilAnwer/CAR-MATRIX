@@ -7,6 +7,7 @@ const { sql, poolPromise } = require('../config/db');
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   const { name, email, phone, cnic, password } = req.body;
+  console.log('Register request:', { name, email, phone, cnic });
   try {
     // 1. Validation
     if (!name || !email || !phone || !cnic || !password)
@@ -58,6 +59,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'Registered successfully' });
   } catch (err) {
+    console.error('Register error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -65,6 +67,7 @@ router.post('/register', async (req, res) => {
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log('Login request:', { email });
   try {
     const pool = await poolPromise;
     const result = await pool.request()
@@ -85,6 +88,7 @@ router.post('/login', async (req, res) => {
 
     res.json({ token, role: user.role, name: user.name });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: err.message });
   }
 });

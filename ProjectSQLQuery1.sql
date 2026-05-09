@@ -299,6 +299,12 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
+        -- 0. If driver_id is NULL, check if car has an assigned driver
+        IF @driver_id IS NULL
+        BEGIN
+            SELECT @driver_id = driver_id FROM Cars WHERE car_id = @car_id;
+        END
+
         -- 1. Validate dates
         IF @end_date <= @start_date
             THROW 50001, 'End date must be after start date.', 1;
@@ -761,8 +767,8 @@ INSERT INTO Extra_Services (service_name, service_cost_type, service_cost) VALUE
 
 -- Admin user
 INSERT INTO Users (name, email, phone, cnic, password_hash, role)
-VALUES ('Super Admin', 'admin@carmatrix.pk', '03001234567',
-        '35202-1234567-1', 'hashed_password_here', 'Admin');
+VALUES ('Super Admin Z', 'z@gmail.com', '03001234567',
+        '35202-1234567-1', '$2b$10$ikssIng1qQl66GMxyzeaf.E5riUk3/1yGB4VXM//Ot2Oazz2y4VVW', 'Admin');
 
 INSERT INTO Admins (user_id, admin_level) VALUES (1, 'SuperAdmin');
 

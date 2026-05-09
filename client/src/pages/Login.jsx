@@ -50,15 +50,15 @@ export default function Login() {
           </div>
 
           <h1 style={{ fontSize: 32, marginBottom: 8 }}>
-            {roleTab === 'Customer' ? 'Welcome back' : 'Welcome, Partner'}
+            {roleTab === 'Customer' ? 'Welcome back' : roleTab === 'Driver' ? 'Welcome, Partner' : 'Admin Portal'}
           </h1>
           <p style={{ color: 'var(--text-secondary)', marginBottom: 24, fontSize: 15 }}>
-            {roleTab === 'Customer' ? 'Sign in to your account to continue' : 'Sign in to manage your trips and earnings'}
+            {roleTab === 'Customer' ? 'Sign in to your account to continue' : roleTab === 'Driver' ? 'Sign in to manage your trips and earnings' : 'Sign in to access the system dashboard'}
           </p>
 
           {/* Role Toggle Tabs */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 32, background: 'var(--bg-elevated)', padding: 6, borderRadius: 12 }}>
-            {['Customer', 'Driver'].map(r => (
+            {['Customer', 'Driver', 'Admin'].map(r => (
               <button
                 key={r} type="button"
                 onClick={() => { setRoleTab(r); setError(''); }}
@@ -69,7 +69,7 @@ export default function Login() {
                   border: 'none', boxShadow: roleTab === r ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
                 }}
               >
-                {r === 'Customer' ? 'Rent a Car' : 'Drive for Us'}
+                {r === 'Customer' ? 'Rent a Car' : r === 'Driver' ? 'Drive for Us' : 'Admin'}
               </button>
             ))}
           </div>
@@ -123,12 +123,14 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', marginTop: 28, fontSize: 14, color: 'var(--text-secondary)' }}>
-            Don't have an account?{' '}
-            <Link to={roleTab === 'Customer' ? "/register" : "/driver/register"} style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>
-              Create one
-            </Link>
-          </p>
+          {roleTab !== 'Admin' && (
+            <p style={{ textAlign: 'center', marginTop: 28, fontSize: 14, color: 'var(--text-secondary)' }}>
+              Don't have an account?{' '}
+              <Link to={roleTab === 'Customer' ? "/register" : "/driver/register"} style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>
+                Create one
+              </Link>
+            </p>
+          )}
         </div>
       </div>
 
@@ -166,19 +168,23 @@ export default function Login() {
 
         <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 64, marginBottom: 24 }}>
-            {roleTab === 'Customer' ? '🚗' : '💼'}
+            {roleTab === 'Customer' ? '🚗' : roleTab === 'Driver' ? '💼' : '🛡️'}
           </div>
           <h2 style={{ fontSize: 26, marginBottom: 12, lineHeight: 1.3 }}>
             {roleTab === 'Customer' ? (
               <>Drive the car<br/>of your dreams</>
-            ) : (
+            ) : roleTab === 'Driver' ? (
               <>Drive & Earn<br/>with CarMatrix</>
+            ) : (
+              <>System<br/>Control Center</>
             )}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7, maxWidth: 280 }}>
             {roleTab === 'Customer' ? 
               "Access Pakistan's finest fleet of vehicles. From daily commutes to luxury getaways — we have you covered." :
-              "Join our fleet of professional drivers. Earn on your own schedule with reliable bookings and transparent payments."
+             roleTab === 'Driver' ?
+              "Join our fleet of professional drivers. Earn on your schedule with reliable bookings and transparent payments." :
+              "Manage fleet operations, approve drivers, handle customer support, and view performance reports."
             }
           </p>
 
@@ -191,9 +197,18 @@ export default function Login() {
                 </div>
               ))}
             </div>
-          ) : (
+          ) : roleTab === 'Driver' ? (
             <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 40 }}>
               {[['Flexible', 'Hours'], ['Weekly', 'Payouts'], ['Premium', 'Clients']].map(([val, lbl]) => (
+                <div key={lbl} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--gold)', fontFamily: 'Playfair Display, serif' }}>{val}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{lbl}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 32, marginTop: 40 }}>
+              {[['Real-time', 'Stats'], ['Secure', 'Access'], ['Total', 'Control']].map(([val, lbl]) => (
                 <div key={lbl} style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--gold)', fontFamily: 'Playfair Display, serif' }}>{val}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{lbl}</div>
